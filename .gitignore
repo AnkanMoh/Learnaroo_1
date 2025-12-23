@@ -1,0 +1,17 @@
+# Secrets
+.env
+.env.*
+*.json
+*service-account*
+*key*.json
+secrets/
+
+# Generated content
+runs/
+*.mp4
+
+# Python junk
+__pycache__/
+*.pyc
+.venv/
+.DS_Store
