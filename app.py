@@ -1,15 +1,30 @@
 # app.py
 from __future__ import annotations
 
+# ------------------------------------
+# 🔐 GCP AUTH — MUST RUN FIRST
+# ------------------------------------
+from tools.auth import setup_gcp_credentials
+setup_gcp_credentials()
+
+# ------------------------------------
+# Imports
+# ------------------------------------
 import os
 import streamlit as st
 
+# ------------------------------------
+# Page config
+# ------------------------------------
 st.set_page_config(
     page_title="Learnaroo",
-    page_icon="🎬",
+    page_icon="🦘",
     layout="centered",
 )
 
+# ------------------------------------
+# Minimal, clean styling
+# ------------------------------------
 st.markdown(
     """
 <style>
@@ -35,21 +50,25 @@ div[role="progressbar"] {
     unsafe_allow_html=True,
 )
 
-# ---- Header ----
-st.markdown("## Learnaroo")
-st.caption("Stories that make learning stick.")
+# ------------------------------------
+# Header
+# ------------------------------------
+st.markdown("## 🦘 Learnaroo")
+st.caption("Stories that make learning stick — for kids and parents.")
 
-# ---- Input Form ----
+# ------------------------------------
+# Input form
+# ------------------------------------
 with st.form("gen_form", clear_on_submit=False):
     prompt = st.text_input(
         "What should the story teach?",
-        placeholder="Example: Explain gravity to a kid using a superhero story",
+        placeholder="Example: Explain gravity using a superhero story",
         max_chars=400,
     )
 
     category = st.selectbox(
         "Story theme",
-        ["superhero", "dinosaur", "space battle", "robot lab", "fairytale"],
+        ["superhero", "dinosaur", "space adventure", "robot lab", "fairytale"],
         index=0,
     )
 
@@ -57,17 +76,18 @@ with st.form("gen_form", clear_on_submit=False):
 
     submitted = st.form_submit_button("Generate", use_container_width=True)
 
-# ---- Run Pipeline ----
+# ------------------------------------
+# Run pipeline
+# ------------------------------------
 if submitted:
     if not prompt.strip():
         st.warning("Please enter a topic to continue.")
         st.stop()
 
-    # Lazy import (but show the REAL error if it fails)
     try:
         from core.director import run_pipeline
     except Exception as e:
-        st.error(f"Pipeline import failed: {repr(e)}")
+        st.error(f"Pipeline import failed: {e}")
         st.stop()
 
     progress_bar = st.progress(0)
@@ -93,21 +113,21 @@ if submitted:
     except Exception as e:
         progress_bar.empty()
         status_line.empty()
-        st.error(f"Generation failed: {repr(e)}")
+        st.error(f"Generation failed: {e}")
         st.stop()
 
-    # ---- Clean UI: remove progress once done ----
     progress_bar.empty()
     status_line.empty()
 
-    # ---- Show ONLY the final video ----
     final_video = None
 
     if isinstance(result, dict):
+        # Preferred: explicit video path
         video_obj = result.get("video")
         if isinstance(video_obj, str) and video_obj.endswith(".mp4"):
             final_video = video_obj
         else:
+            # Fallback: look inside run_dir
             run_dir = result.get("run_dir")
             if isinstance(run_dir, str):
                 candidate = os.path.join(run_dir, "final_synced.mp4")
@@ -117,4 +137,7 @@ if submitted:
     if final_video and os.path.exists(final_video):
         output_slot.video(final_video)
     else:
-        st.error("Final video not found. Veo may have returned a cloud URI instead of a local file.")
+        st.error(
+            "Final video not found. "
+            "Veo may have returned a cloud URI or rendering failed."
+        )
