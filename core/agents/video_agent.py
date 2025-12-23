@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
-from moviepy import AudioFileClip, VideoFileClip, concatenate_videoclips
+from moviepy.audio.io.AudioFileClip import AudioFileClip, VideoFileClip, concatenate_videoclips
 
 from core.schemas import LessonPlan
 from tools.genai_client import GenAIClient
